@@ -207,8 +207,10 @@ final class AudioEngineCapture: CaptureEngine {
   // MARK: - Private
 
   private func shutDown(_ engine: AVAudioEngine) {
-    engine.inputNode.removeTap(onBus: m_bus)
+    // Stop first: removing the tap from a running engine races the audio IO
+    // thread and can crash inside CoreAudio.
     engine.stop()
+    engine.inputNode.removeTap(onBus: m_bus)
     // Voice processing can only change on a stopped engine.
     if usesVoiceProcessing { try? setVoiceProcessing(false, on: engine) }
   }
